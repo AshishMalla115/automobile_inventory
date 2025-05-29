@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard - Spare Parts Inventory</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar { min-width: 220px; background: #343a40; color: #fff; min-height: 100vh; }
+        .sidebar a { color: #fff; text-decoration: none; display: block; padding: 1rem; }
+        .sidebar a:hover { background: #495057; }
+        .content { padding: 2rem; }
+        .stat-card { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 0 10px #ccc; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar">
+        <h3 class="p-3">Owner Panel</h3>
+        <a href="{% url 'add_product' %}">Add Product</a>
+        <a href="{% url 'stock_available' %}">Stock Available</a>
+        <a href="{% url 'low_stock_alert' %}">Low Stock Alert</a>
+        <a href="{% url 'sales_details' %}">Sales Details</a>
+        <a href="{% url 'total_sales' %}">Total Sales</a>
+        <a href="{% url 'highest_sold_products' %}">Highest Sold Products</a>
+    </div>
+    <div class="content flex-grow-1">
+        <h2 class="mb-4">Welcome, Owner!</h2>
+        
+        <!-- Sales Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h4>Total Sales</h4>
+                    <h2>₹{{ total_sales|floatformat:2 }}</h2>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h4>Monthly Sales</h4>
+                    <h2>₹{{ monthly_sales|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Management -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h4>Product Management</h4>
+                    <div class="list-group">
+                        {% for product in products %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ product.name }}
+                            <div>
+                                <a href="{% url 'edit_product' product.id %}" class="btn btn-sm btn-primary">Edit</a>
+                                <a href="{% url 'delete_product' product.id %}" class="btn btn-sm btn-danger">Delete</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h4>Low Stock Alert</h4>
+                    <ul class="list-group">
+                        {% for product in low_stock_products %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ product.name }}
+                            <span class="badge bg-danger rounded-pill">{{ product.stock }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales Overview -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h4>Top Selling Products</h4>
+                    <ul class="list-group">
+                        {% for product in top_products %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ product.part__name }}
+                            <span class="badge bg-primary rounded-pill">{{ product.total_quantity }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="stat-card">
+                    <h4>Recent Sales</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in recent_sales %}
+                                <tr>
+                                    <td>{{ sale.part.name }}</td>
+                                    <td>{{ sale.quantity }}</td>
+                                    <td>₹{{ sale.total_price|floatformat:2 }}</td>
+                                    <td>{{ sale.sale_date|date:"d M Y H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html> 

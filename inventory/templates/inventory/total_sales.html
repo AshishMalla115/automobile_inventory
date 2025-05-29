@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Total Sales - Spare Parts Inventory</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .content { padding: 2rem; }
+        .sales-card { background: #fff; padding: 1.5rem; border-radius: 10px; box-shadow: 0 0 10px #ccc; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <h2 class="mb-4">Sales Overview</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="sales-card">
+                        <h4>Total Sales</h4>
+                        <h2 class="text-primary">₹{{ total_sales|floatformat:2 }}</h2>
+                        <p class="text-muted">All time sales</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="sales-card">
+                        <h4>Monthly Sales</h4>
+                        <h2 class="text-success">₹{{ monthly_sales|floatformat:2 }}</h2>
+                        <p class="text-muted">Current month</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="sales-card">
+                        <h4>Daily Sales</h4>
+                        <h2 class="text-info">₹{{ daily_sales|floatformat:2 }}</h2>
+                        <p class="text-muted">Today's sales</p>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'owner_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html> 

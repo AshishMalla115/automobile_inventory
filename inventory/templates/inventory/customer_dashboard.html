@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Spare Parts Inventory</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .sidebar { min-width: 220px; background: #343a40; color: #fff; min-height: 100vh; }
+        .sidebar a { color: #fff; text-decoration: none; display: block; padding: 1rem; }
+        .sidebar a:hover { background: #495057; }
+        .content { padding: 2rem; }
+        .product-card { background: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px #ccc; margin-bottom: 1rem; }
+        .product-card img { max-width: 100%; height: auto; }
+        .basket-summary { position: fixed; right: 2rem; top: 2rem; background: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div class="sidebar">
+        <h3 class="p-3">Categories</h3>
+        <a href="{% url 'customer_dashboard' %}">All Products</a>
+        {% for category in categories %}
+        <a href="{% url 'customer_dashboard' %}?category={{ category.id }}">{{ category.name }}</a>
+        {% endfor %}
+    </div>
+    <div class="content flex-grow-1">
+        <h2 class="mb-4">Available Products</h2>
+        
+        <!-- Basket Summary -->
+        <div class="basket-summary">
+            <h4>Your Basket</h4>
+            <div id="basket-items">
+                <!-- Basket items will be added here dynamically -->
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between">
+                <strong>Total:</strong>
+                <span id="basket-total">₹0.00</span>
+            </div>
+            <button class="btn btn-success w-100 mt-3" onclick="buyItems()">Buy Now</button>
+        </div>
+
+        <div class="row">
+            {% for product in products %}
+            <div class="col-md-4 mb-4">
+                <div class="product-card">
+                    <h4>{{ product.name }}</h4>
+                    <p class="text-muted">{{ product.category.name }}</p>
+                    <p>{{ product.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">₹{{ product.price }}</h5>
+                        <span class="badge {% if product.stock > 10 %}bg-success{% else %}bg-warning{% endif %}">
+                            Stock: {{ product.stock }}
+                        </span>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-3" onclick="addToBasket({{ product.id }}, '{{ product.name }}', {{ product.price }})">
+                        Add to Basket
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <p class="text-center">No products found in this category.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+let basket = [];
+
+function addToBasket(productId, name, price) {
+    const existingItem = basket.find(item => item.id === productId);
+    if (existingItem) {
+        existingItem.quantity += 1;
+    } else {
+        basket.push({ id: productId, name, price, quantity: 1 });
+    }
+    updateBasketDisplay();
+}
+
+function updateBasketDisplay() {
+    const basketItems = document.getElementById('basket-items');
+    const basketTotal = document.getElementById('basket-total');
+    let total = 0;
+    
+    basketItems.innerHTML = basket.map(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        return `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    ${item.name} x ${item.quantity}
+                </div>
+                <div>
+                    ₹${itemTotal.toFixed(2)}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    basketTotal.textContent = `₹${total.toFixed(2)}`;
+}
+
+function buyItems() {
+    if (basket.length === 0) {
+        alert('Your basket is empty!');
+        return;
+    }
+    
+    // Send basket items to server
+    fetch('/checkout/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            items: basket
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Purchase successful! Thank you for your order.');
+            basket = [];
+            updateBasketDisplay();
+        } else {
+            alert(data.message || 'Error processing your order. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error processing your order. Please try again.');
+    });
+}
+
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+</body>
+</html> 
